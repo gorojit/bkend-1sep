@@ -6,14 +6,28 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy } from "passport-local";
 import env from "dotenv";
+import cors from "cors";
+import http from "http";
+import fs from "fs";
+
+
 
 const app = express();
 const port = 3000;
 const saltRound=10;
-env.config
-();
+const corsConfig = {
+  origin: "*",
+  credential: true
+};
+
+
+
+
+env.config();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
+app.options("", cors(corsConfig));
+app.use(cors(corsConfig));
 
 app.use(session({
   secret:process.env.SESSION_SECRET,
@@ -28,15 +42,23 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.set('views', './views');
+app.set('view engine','ejs'); 
+
+
 const db = new pg.Client({
-  connectionString: process.env.POSTGRES_URL,
+  user:process.env.PG_USER,
+  host:process.env.PG_HOST,
+  database:process.env.PG_DATABASE,
+  password:process.env.PG_PASSWORD,
+  port:process.env.PG_PORT,
 });
 db.connect();
 
 
 
-app.get("/", (req, res) => {
-  res.render("index.ejs");
+app.get('/', (req, res)=>{
+  res.render('index.html');
 });
 
 app.get("/contact", (req, res) => {
